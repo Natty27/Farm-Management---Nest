@@ -12,6 +12,7 @@ import {
 import {
   MilkingRecord,
   MilkingTime,
+  MilkSourceType,
 } from './../milkingRecord/schemas/milkingRecord.schema';
 import { Sale, ProductType } from './../sales/schemas/sales.schema';
 
@@ -100,29 +101,56 @@ export class ReportsService {
         }
       : {};
 
+    // Get regular expenses
     const expenses = await this.expenseModel.find(filter).exec();
 
-    const totalExpenses = expenses.reduce(
+    // Get external provider milking records as expenses
+    const externalMilkFilter = {
+      source_type: MilkSourceType.EXTERNAL_PROVIDER,
+      ...(dateRange
+        ? { date: { $gte: dateRange.startDate, $lte: dateRange.endDate } }
+        : {}),
+    };
+
+    const externalMilkRecords = await this.milkingRecordModel
+      .find(externalMilkFilter)
+      .exec();
+
+    // Convert external milk records to expense-like objects
+    const externalMilkExpenses = externalMilkRecords
+      .filter((record) => record.cost_price && record.cost_price > 0)
+      .map((record) => ({
+        amount: record.cost_price, // total cost = quantity * price per liter
+        category: ExpenseCategory.MILK_PURCHASE,
+        type: ExpenseType.EXTERNAL_MILK_PURCHASE,
+        date: record.date,
+        description: `External milk purchase - ${record.amount}L @ ${record.cost_price}/L`,
+      }));
+
+    // Combine regular expenses with external milk expenses
+    const allExpenses = [...expenses, ...externalMilkExpenses];
+
+    const totalExpenses = allExpenses.reduce(
       (sum, expense) => sum + expense.amount,
       0,
     );
 
     const byCategory = Object.values(ExpenseCategory).map((category) => ({
       category,
-      total: expenses
+      total: allExpenses
         .filter((e) => e.category === category)
         .reduce((sum, e) => sum + e.amount, 0),
     }));
 
     const byType = Object.values(ExpenseType).map((type) => ({
       type,
-      total: expenses
+      total: allExpenses
         .filter((e) => e.type === type)
         .reduce((sum, e) => sum + e.amount, 0),
     }));
 
     // Monthly trends
-    const monthlyTrends = expenses.reduce((acc, expense) => {
+    const monthlyTrends = allExpenses.reduce((acc, expense) => {
       const month = expense.date.toISOString().substring(0, 7); // YYYY-MM
       acc[month] = (acc[month] || 0) + expense.amount;
       return acc;

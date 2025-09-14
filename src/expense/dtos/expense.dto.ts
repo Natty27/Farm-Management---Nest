@@ -14,6 +14,7 @@ export enum ExpenseCategory {
   MEDICAL = 'medical',
   LABOR = 'labor',
   MAINTENANCE = 'maintenance',
+  MILK_PURCHASE = 'milk_purchase',
   OTHER = 'other',
 }
 // expense.enum.ts
@@ -43,6 +44,9 @@ export enum ExpenseType {
   FENCE_REPAIR = 'fence_repair',
   EQUIPMENT_SERVICE = 'equipment_service',
   VEHICLE_MAINTENANCE = 'vehicle_maintenance',
+
+  // Milk Purchase Expenses
+  EXTERNAL_MILK_PURCHASE = 'external_milk_purchase',
 
   // Other Expenses
   TRANSPORTATION = 'transportation',
