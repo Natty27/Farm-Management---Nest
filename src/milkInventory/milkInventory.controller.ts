@@ -10,4 +10,9 @@ export class MilkInventoryController {
   async getInventory(@Param('date') date: string) {
     return this.milkInventoryService.findOrCreateByDate(new Date(date));
   }
+
+  @Get()
+  async getAll() {
+    return this.milkInventoryService.findAll();
+  }
 }

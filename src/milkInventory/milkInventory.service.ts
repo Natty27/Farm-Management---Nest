@@ -16,6 +16,10 @@ export class MilkInventoryService {
     private milkInventoryModel: Model<MilkInventoryDocument>,
   ) {}
 
+  async findAll(): Promise<MilkInventoryDocument[]> {
+    return this.milkInventoryModel.find().sort({ date: -1 }).exec();
+  }
+
   async findOrCreateByDate(date: Date): Promise<MilkInventoryDocument> {
     let record = await this.milkInventoryModel.findOne({ date }).exec();
     if (!record) {
