@@ -38,7 +38,7 @@ export class PaymentHistoryService {
   async getPaymentHistorys() {
     return this.paymentHistoryModel
       .find()
-      .populate('customerId', 'name') // only include name field
+      .populate('customerId', 'name lastPaymentDate') // only include name field
       .exec();
   }
 
